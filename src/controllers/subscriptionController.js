@@ -33,6 +33,8 @@ const createSubscription = async (req, res) => {
       return;
     }
 
+    // UNIQUE USER SUBS PLAN 
+
     const user = await userModel.findOne({ user_name });
 
     if (!user) {

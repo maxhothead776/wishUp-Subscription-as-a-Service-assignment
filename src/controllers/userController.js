@@ -11,6 +11,7 @@ const createUser = async (req, res) => {
       return;
     }
 
+    // UNIQUE USER
     const newUser = {
       user_name: user_name,
       created_at: new Date(),
