@@ -121,14 +121,16 @@ const getSubscriptionByDate = async (req, res) => {
     const valid_till = validator.validTill(start_date, validity);
 
     // check whether the current date is between start date and valid till date
-    
+
+    const timeDif = Math.abs(new Date(current_date) - start_date);
+    const days_left = Math.ceil(timeDif / (1000 * 60 * 60 * 24));
+
     const data = {
       plan_Id,
-      // days_left
+      days_left,
     };
 
     res.status(200).send({ status: true, data: data });
-
   } catch (error) {
     res.status(500).send({ status: false, msg: error.message });
   }
