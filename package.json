@@ -1,0 +1,22 @@
+{
+  "name": "wishup-assignment",
+  "version": "1.0.0",
+  "description": "subscription as a service",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxhothead776/Subscription-as-a-Service.git"
+  },
+  "author": "Mayank Attri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maxhothead776/Subscription-as-a-Service/issues"
+  },
+  "homepage": "https://github.com/maxhothead776/Subscription-as-a-Service#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
