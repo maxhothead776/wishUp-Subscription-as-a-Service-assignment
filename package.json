@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/maxhothead776/Subscription-as-a-Service#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mongoose": "^6.0.11",
+    "nodemon": "^2.0.14"
   }
 }
