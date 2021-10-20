@@ -68,8 +68,116 @@ const createSubscription = async (req, res) => {
   }
 };
 
+const getSubscriptionByDate = async (req, res) => {
+  try {
+    const user_name = req.params.user_name;
+    const current_date = req.params.date;
+
+    if (!validator.isValid(user_name)) {
+      res.status(400).send({ status: false, msg: "enter a valid name" });
+      return;
+    }
+
+    if (!validator.isValid(current_date)) {
+      res
+        .status(400)
+        .send({ status: false, message: "current date is required" });
+      return;
+    }
+
+    if (!validator.validateDate(current_date)) {
+      res
+        .status(400)
+        .send({ status: false, message: "enter date in YYYY-MM-DD format" });
+      return;
+    }
+
+    const user = await userModel.findOne({ user_name });
+
+    if (!user) {
+      res
+        .status(404)
+        .send({ status: false, msg: `user ${user_name} not found` });
+      return;
+    }
+
+    const subs = await subscriptionModel.findOne({ user_name });
+
+    if (!subs) {
+      res.status(404).send({
+        status: false,
+        msg: `user ${user_name} has not subscribed yet`,
+      });
+      return;
+    }
+
+    const start_date = subs.start_date;
+    const plan_Id = subs.plan_Id;
+
+    const plan = await planModel.findOne({ plan_Id });
+
+    const validity = plan.validity;
+
+    const valid_till = validator.validTill(start_date, validity);
+
+    // check whether the current date is between start date and valid till date
+    
+    const data = {
+      plan_Id,
+      // days_left
+    };
+
+    res.status(200).send({ status: true, data: data });
+
+  } catch (error) {
+    res.status(500).send({ status: false, msg: error.message });
+  }
+};
+
 const getSubscription = async (req, res) => {
   try {
+    const user_name = req.params.user_name;
+
+    if (!validator.isValid(user_name)) {
+      res.status(400).send({ status: false, msg: "enter a valid name" });
+      return;
+    }
+
+    const user = await userModel.findOne({ user_name });
+
+    if (!user) {
+      res
+        .status(404)
+        .send({ status: false, msg: `user ${user_name} not found` });
+      return;
+    }
+
+    const subs = await subscriptionModel.findOne({ user_name });
+
+    if (!subs) {
+      res.status(404).send({
+        status: false,
+        msg: `user ${user_name} has not subscribed yet`,
+      });
+      return;
+    }
+
+    const start_date = subs.start_date;
+    const plan_Id = subs.plan_Id;
+
+    const plan = await planModel.findOne({ plan_Id });
+
+    const validity = plan.validity;
+
+    const valid_till = validator.validTill(start_date, validity);
+
+    const data = {
+      plan_Id,
+      start_date,
+      valid_till,
+    };
+
+    res.status(200).send({ status: true, data: data });
   } catch (error) {
     res.status(500).send({ status: false, msg: error.message });
   }
@@ -77,5 +185,6 @@ const getSubscription = async (req, res) => {
 
 module.exports = {
   createSubscription,
+  getSubscriptionByDate,
   getSubscription,
 };

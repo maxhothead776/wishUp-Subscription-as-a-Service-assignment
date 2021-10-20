@@ -1,4 +1,4 @@
-const planModel = require("../models/planModel.js");
+const { planModel } = require("../models/planModel.js");
 
 const validator = require("../utils/validator.js");
 
@@ -52,7 +52,6 @@ const createPlan = async (req, res) => {
   }
 };
 
-
 module.exports = {
-    createPlan
-}
+  createPlan,
+};

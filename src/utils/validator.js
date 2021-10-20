@@ -22,9 +22,16 @@ const validateDate = function (date) {
   return dateRegex.test(date);
 };
 
+const validTill = function (date, days) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
 module.exports = {
   isValid,
   isValidRequestBody,
   isValidPlan,
   validateDate,
+  validTill,
 };
