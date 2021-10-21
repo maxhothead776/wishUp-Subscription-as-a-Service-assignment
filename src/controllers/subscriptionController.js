@@ -8,42 +8,69 @@ const createSubscription = async (req, res) => {
   try {
     const requestBody = req.body;
 
+    // checking for valid input
     if (!validator.isValidRequestBody(requestBody)) {
       res.status(400).send({ status: false, msg: "enter a valid body" });
       return;
     }
 
-    const { plan_Id, user_name, start_date } = requestBody;
+    // object destructuring
+    const { plan_id, user_name, start_date } = requestBody;
 
-    if (!validator.isValid(plan_Id)) {
+    // valid plan Id
+    if (!validator.isValid(plan_id)) {
       res.status(400).send({ status: false, msg: "enter a plan id" });
       return;
     }
 
-    if (!validator.isValidPlan(plan_Id)) {
+    // plan id can only be one of the given six
+    if (!validator.isValidPlan(plan_id)) {
       res.status(400).send({
         status: false,
-        msg: `${subsPlan.plan_Id.join(",")} is required`,
+        msg: `the plan should be one of ${subsPlan.plan_Id.join(", ")} `,
       });
       return;
     }
 
+    // username should be present as well
     if (!validator.isValid(user_name)) {
       res.status(400).send({ status: false, msg: "enter a user name" });
       return;
     }
 
-    // UNIQUE USER SUBS PLAN 
+    // valid username
+    if (!validator.validateUserName(user_name)) {
+      res.status(400).send({ status: false, msg: "enter a valid user name" });
+      return;
+    }
+
+    // whether the user has registered
 
     const user = await userModel.findOne({ user_name });
 
     if (!user) {
       res
-        .status(400)
+        .status(404)
         .send({ status: false, msg: `user ${user_name} not registered` });
       return;
     }
 
+    // checking whether the user has already subscribed
+
+    /*
+    let isSubscriptionAlreadyPresent = await subscriptionModel.findOne({
+      user_name,
+    });
+
+    if (isSubscriptionAlreadyPresent) {
+      return res.status(400).send({
+        status: false,
+        msg: ` username ${user_name} has already subscribed`,
+      });
+    }
+    */
+   
+    // start_date should be entered
     if (!validator.isValid(start_date)) {
       res
         .status(400)
@@ -51,6 +78,7 @@ const createSubscription = async (req, res) => {
       return;
     }
 
+    // valid date should be enterd
     if (!validator.validateDate(start_date)) {
       res
         .status(400)
@@ -58,11 +86,13 @@ const createSubscription = async (req, res) => {
       return;
     }
 
-    const newSub = { plan_Id, user_name, start_date };
+    // creating new subscription
+    const newSub = { plan_id, user_name, start_date };
 
     await subscriptionModel.create(newSub);
 
-    const amount = await planModel.findOne({ plan_Id });
+    // output
+    const amount = await planModel.findOne({ plan_id });
 
     res.status(201).send({ status: "SUCCESS", amount: -amount.cost });
   } catch (error) {
@@ -94,6 +124,7 @@ const getSubscriptionByDate = async (req, res) => {
       return;
     }
 
+    // checking whether the user is present or not
     const user = await userModel.findOne({ user_name });
 
     if (!user) {
@@ -103,6 +134,7 @@ const getSubscriptionByDate = async (req, res) => {
       return;
     }
 
+    // checking whether he has subscribed or not
     const subs = await subscriptionModel.findOne({ user_name });
 
     if (!subs) {

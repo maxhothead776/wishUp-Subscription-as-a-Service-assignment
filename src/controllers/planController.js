@@ -1,4 +1,4 @@
-const { planModel } = require("../models/planModel.js");
+const { planModel } = require("../models");
 
 const validator = require("../utils/validator.js");
 
@@ -8,26 +8,31 @@ const createPlan = async (req, res) => {
   try {
     const requestBody = req.body;
 
+    // WHETHER THE REQUEST BODY or INPUT IS PRESENT
     if (!validator.isValidRequestBody(requestBody)) {
       res.status(400).send({ status: false, msg: "enter a valid body" });
       return;
     }
 
-    const { plan_Id, validity, cost } = requestBody;
+    // OBJECT DESTRUCTURING
+    const { plan_id, validity, cost } = requestBody;
 
-    if (!validator.isValid(plan_Id)) {
+    // WHETHER A PLAN_ID IS PRESENT OR NOT
+    if (!validator.isValid(plan_id)) {
       res.status(400).send({ status: false, msg: "enter a plan id" });
       return;
     }
 
-    if (!validator.isValidPlan(plan_Id)) {
+    // WHETHER PLAN_ID IS FROM OUR PLANS OR NOT
+    if (!validator.isValidPlan(plan_id)) {
       res.status(400).send({
         status: false,
-        msg: `${subsPlan.plan_Id.join(",")} is required`,
+        msg: ` the plan should be one of ${subsPlan.plan_Id.join(", ")} `,
       });
       return;
     }
 
+    // WHETHER A VALIDITY IS GIVEN OR NOT
     if (!validator.isValid(validity)) {
       res
         .status(400)
@@ -35,15 +40,18 @@ const createPlan = async (req, res) => {
       return;
     }
 
+    // WHETHER THE COST IS GIVEN
     if (!validator.isValid(cost)) {
       res.status(400).send({ status: false, msg: "enter a valid amount" });
       return;
     }
 
-    newPlan = { plan_Id, validity, cost };
+    // CREATING THE NEW PLAN
+    newPlan = { plan_id, validity, cost };
 
     const createdPlan = await planModel.create(newPlan);
 
+    // OUTPUT
     res
       .status(200)
       .send({ status: true, msg: "new plan incorporated", data: createdPlan });

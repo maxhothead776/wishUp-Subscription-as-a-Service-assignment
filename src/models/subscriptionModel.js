@@ -11,9 +11,9 @@ const subsSchema = new mongoose.Schema({
     refs: "User",
     unique: true,
   },
-  plan_Id: {
+  plan_id: {
     type: String,
-    required: true,
+    required: "enter a plan Id",
     enum: subsPlan.plan_Id,
     trim: true,
   },
