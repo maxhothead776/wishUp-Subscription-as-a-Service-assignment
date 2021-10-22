@@ -2,10 +2,14 @@ const mongoose = require("mongoose");
 
 const subsPlan = require("../configs/subsPlan.js");
 
+const objectId = mongoose.Types.ObjectId;
+
 const subsSchema = new mongoose.Schema({
   user_name: {
-    type: String,
+    type: objectId,
+    refs: "User",
     required: "enter the user name",
+    trim: true,
   },
   plan_id: {
     type: String,
@@ -16,6 +20,7 @@ const subsSchema = new mongoose.Schema({
   start_date: {
     type: Date,
     required: true,
+    trim: true,
   },
   valid_till: {
     type: Date,

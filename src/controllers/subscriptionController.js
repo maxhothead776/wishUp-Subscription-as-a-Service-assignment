@@ -45,6 +45,8 @@ const createSubscription = async (req, res) => {
       return;
     }
 
+    user_name = user._id;
+
     // valid plan Id
     if (!validator.isValid(plan_id)) {
       res.status(400).send({
@@ -93,24 +95,27 @@ const createSubscription = async (req, res) => {
 
     let total_subscriptions = await subscriptionModel.find({
       user_name: user_name,
+      $sort: { valid_till: 1 },
     });
 
-    // Assuming that all the subscriptions are in order
+    // taking out the last active subscription
     if (total_subscriptions.length >= 1) {
       var latestSubscription =
         total_subscriptions[total_subscriptions.length - 1];
       let validTill = latestSubscription.valid_till;
 
       // whether the start date is after the previous subscription expired
-      if (
-        moment(start_date).format("YYYY-MM-DD") <
-        moment(validTill).format("YYYY-MM-DD")
-      ) {
-        return res.status(400).send({
-          status: "FAILURE",
-          msg: `user is already subscribed upto ${validTill}`,
-        });
-      }
+      // if (
+      //   moment(start_date).format("YYYY-MM-DD") <
+      //   moment(validTill).format("YYYY-MM-DD")
+      // ) {
+      //   return res.status(400).send({
+      //     status: "FAILURE",
+      //     msg: `user is already subscribed upto ${validTill}`,
+      //   });
+      // }
+
+      start_date = moment(validTill, "YYYY-MM-DD").add(1, "days");
     }
 
     // calculating valid_till date
@@ -165,8 +170,8 @@ const createSubscription = async (req, res) => {
 
 const getSubscriptionByDate = async (req, res) => {
   try {
-    const user_name = req.params.user_name;
-    const current_date = req.params.date;
+    let user_name = req.params.user_name;
+    let input_date = req.params.date;
 
     if (!validator.isValid(user_name)) {
       res.status(400).send({
@@ -176,20 +181,30 @@ const getSubscriptionByDate = async (req, res) => {
       return;
     }
 
-    if (!validator.isValid(current_date)) {
+    if (!validator.isValid(input_date)) {
       res.status(400).send({
         status: "FAILURE",
-        message: "current date is required",
+        message: "date is required",
       });
       return;
     }
 
-    if (!validator.validDate(current_date)) {
+    if (!validator.validDate(input_date)) {
       res.status(400).send({
         status: "FAILURE",
         message: "enter date in YYYY-MM-DD format",
       });
       return;
+    }
+
+    // check whether the input date is not from the past
+    if (
+      moment(input_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
+    ) {
+      return res.status(400).send({
+        status: "FAILURE",
+        msg: "please enter today's date",
+      });
     }
 
     // checking whether the user is present or not
@@ -205,12 +220,18 @@ const getSubscriptionByDate = async (req, res) => {
       return;
     }
 
+    // casting username to objectId
+    user_name = user._id;
+
     // checking whether he has subscribed or not
-    const subs = await subscriptionModel.find({
-      user_name,
+    const subscription = await subscriptionModel.findOne({
+      user_name: user_name,
+      start_date: { $lte: new Date(input_date) },
+      valid_till: { $gte: new Date(input_date) },
     });
 
-    if (!subs) {
+    // if subscription is not found
+    if (!subscription) {
       res.status(404).send({
         status: "FAILURE",
         msg: `user ${user_name} has not subscribed yet`,
@@ -218,40 +239,11 @@ const getSubscriptionByDate = async (req, res) => {
       return;
     }
 
-    // latest subscription details
-    const latestSubscription = subs[subs.length - 1];
-    const plan_id = latestSubscription.plan_id;
-    const start_date = latestSubscription.start_date;
-    const valid_till = latestSubscription.valid_till;
+    const plan_id = subscription.plan_id;
+    const valid_till = moment(subscription.valid_till);
+    input_date = moment(input_date);
 
-    // current date should be between start and valid date of subscription
-
-    if (new Date(current_date) < start_date) {
-      return res.status(400).send({
-        status: "FAILURE",
-        msg: `your current active plan is from ${start_date} and ${valid_till}`,
-      });
-    }
-
-    // check whether the current date is between today's date and valid till date
-    if (
-      moment(current_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
-    ) {
-      return res.status(400).send({
-        status: "FAILURE",
-        msg: "please enter today's date",
-      });
-    }
-
-    if (new Date(current_date) > valid_till) {
-      return res.status(404).send({
-        status: "FAILURE",
-        msg: "No active plans found. Please renew your subscription",
-      });
-    }
-
-    const timeDif = Math.abs(valid_till - new Date(current_date));
-    const days_left = Math.ceil(timeDif / (1000 * 60 * 60 * 24));
+    const days_left = valid_till.diff(input_date, "days");
 
     const data = {
       plan_id,
@@ -272,7 +264,7 @@ const getSubscriptionByDate = async (req, res) => {
 
 const getSubscription = async (req, res) => {
   try {
-    const user_name = req.params.user_name;
+    let user_name = req.params.user_name;
 
     if (!validator.isValid(user_name)) {
       res.status(400).send({
@@ -294,6 +286,9 @@ const getSubscription = async (req, res) => {
       return;
     }
 
+    // casting username to objectId
+    user_name = user._id;
+
     const subs = await subscriptionModel.find(
       {
         user_name: user_name,
@@ -305,7 +300,7 @@ const getSubscription = async (req, res) => {
       }
     );
 
-    if (!subs) {
+    if (subs == 0) {
       res.status(404).send({
         status: "FAILURE",
         msg: `user ${user_name} has not subscribed yet`,

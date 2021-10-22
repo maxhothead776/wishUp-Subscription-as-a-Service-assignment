@@ -11,6 +11,7 @@ router.get("/user/:user_name", userController.getUser);
 
 
 // FOR ADMIN ONLY(PLAN API)
+// even though i have not established any authentication or authorisation for admin but i can do it using jwt token.
 const planController = require("../controllers/planController.js");
 
 router.post("/plan", planController.createPlan);

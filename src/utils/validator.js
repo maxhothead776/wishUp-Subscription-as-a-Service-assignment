@@ -2,7 +2,7 @@ const subsPlan = require("../configs/subsPlan.js");
 
 const moment = require("moment");
 
-const validFormat = ["YYYY-MM-DD", "YYYY-M-D"];
+const validFormat = ["YYYY-MM-DD"];
 
 // isValid checks valid strings for string and valid numbers for numbers
 const isValid = function (value) {

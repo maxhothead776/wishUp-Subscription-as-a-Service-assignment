@@ -1,5 +1,7 @@
 const { userModel } = require("../models");
 
+const moment = require("moment")
+
 const validator = require("../utils/validator.js");
 
 const createUser = async (req, res) => {
@@ -49,7 +51,7 @@ const getUser = async (req, res) => {
     }
 
     // finding the USER in db
-    const user = await userModel.findOne({ user_name }, { _id: 0, __v: 0 });
+    let user = await userModel.findOne({ user_name }, { _id: 0, __v: 0 });
 
     // if USER is not present
     if (!user) {
@@ -59,6 +61,10 @@ const getUser = async (req, res) => {
       });
       return;
     }
+
+    // formatting date to match the sample output
+    user = user.toJSON();
+    user.created_at = moment(user.created_at).format("YYYY-MM-DD HH:mm:ss")
 
     // OUTPUT
     res.status(200).send({ status: "SUCCESS", data: user });
