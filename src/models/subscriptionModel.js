@@ -2,11 +2,9 @@ const mongoose = require("mongoose");
 
 const subsPlan = require("../configs/subsPlan.js");
 
-const objectId = mongoose.Types.ObjectId;
-
 const subsSchema = new mongoose.Schema({
   user_name: {
-    type: objectId,
+    type: String,
     required: "enter the user name",
     refs: "User",
     unique: true,
@@ -21,6 +19,9 @@ const subsSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  valid_till: {
+    type: Date,
+  }
 });
 
 module.exports = mongoose.model("subs", subsSchema);

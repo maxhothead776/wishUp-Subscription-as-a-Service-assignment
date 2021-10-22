@@ -7,18 +7,18 @@ const createUser = async (req, res) => {
     const user_name = req.params.user_name;
 
     // whether the USERNAME is valid or not
-    if (!validator.validateUserName(user_name)) {
-      res.status(400).send({ status: false, msg: "enter a valid user name" });
+    if (!validator.isValid(user_name)) {
+      res.status(400).send({ status: "FAILURE", msg: "enter a user name" });
       return;
     }
 
     // UNIQUE USER
 
-    let isUserNameAlreadyPresent = await userModel.findOne({ user_name });
+    let UserAlreadyPresent = await userModel.findOne({ user_name });
 
-    if (isUserNameAlreadyPresent) {
+    if (UserAlreadyPresent) {
       return res.status(400).send({
-        status: false,
+        status: "FAILURE",
         msg: ` username ${user_name} already taken, choose a new one`,
       });
     }
@@ -32,9 +32,9 @@ const createUser = async (req, res) => {
     const createdUser = await userModel.create(newUser);
 
     // OUTPUT
-    res.status(201).send({ status: true, msg: "SUCCESS", data: createdUser });
+    res.status(201).send({ status: "SUCCESS", data: createdUser });
   } catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({ status: "FAILURE", msg: error.message });
   }
 };
 
@@ -43,27 +43,27 @@ const getUser = async (req, res) => {
     const user_name = req.params.user_name;
 
     // validating the USERNAME
-    if (!validator.validateUserName(user_name)) {
+    if (!validator.isValid(user_name)) {
       res.status(400).send({ status: false, msg: "enter a valid name to get" });
       return;
     }
 
-    // finding the USERNAME in db
+    // finding the USER in db
     const user = await userModel.findOne({ user_name }, { _id: 0, __v: 0 });
 
-    // if USERNAME is not present
+    // if USER is not present
     if (!user) {
       res.status(404).send({
-        status: false,
+        status: "FAILURE",
         msg: `user ${user_name} has not registered yet`,
       });
       return;
     }
 
     // OUTPUT
-    res.status(200).send({ status: true, data: user });
+    res.status(200).send({ status: "SUCCESS", data: user });
   } catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({ status: "FAILURE", msg: error.message });
   }
 };
 

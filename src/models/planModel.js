@@ -11,6 +11,7 @@ const planSchema = new mongoose.Schema({
     },
     validity: {
         type: Number,
+        // validity is stored in days
         required: true,
         trim: true
     },

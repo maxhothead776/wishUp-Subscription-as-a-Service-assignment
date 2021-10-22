@@ -47,14 +47,14 @@ const createPlan = async (req, res) => {
     }
 
     // CREATING THE NEW PLAN
-    newPlan = { plan_id, validity, cost };
+    const newPlan = { plan_id, validity, cost };
 
     const createdPlan = await planModel.create(newPlan);
 
     // OUTPUT
     res
-      .status(200)
-      .send({ status: true, msg: "new plan incorporated", data: createdPlan });
+      .status(201)
+      .send({ status: "SUCCESS", msg: "new plan incorporated", data: createdPlan });
   } catch (error) {
     res.status(500).send({ status: false, msg: error.message });
   }
