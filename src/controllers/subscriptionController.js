@@ -87,7 +87,7 @@ const createSubscription = async (req, res) => {
       user_name: user_name,
     });
 
-    // Assuming that all the subscriptiona are in order
+    // Assuming that all the subscriptions are in order
     if (total_subscriptions.length >= 1) {
       var latestSubscription =
         total_subscriptions[total_subscriptions.length - 1];
@@ -127,10 +127,20 @@ const createSubscription = async (req, res) => {
       valid_till,
     };
 
-    await subscriptionModel.create(newSub);
+    const subscription = await subscriptionModel.create(newSub);
+
+    // cost of chosen subscription plan
+    const amount = plan.cost;
+
+    if (!subscription) {
+      return res.status(400).send({
+        status: "FAILURE",
+        msg: "Subscription Failed. Your money will be sent back",
+        amount: +amount,
+      });
+    }
 
     // output
-    const amount = plan.cost;
 
     res.status(201).send({
       status: "SUCCESS",

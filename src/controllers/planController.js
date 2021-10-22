@@ -10,7 +10,7 @@ const createPlan = async (req, res) => {
 
     // WHETHER THE REQUEST BODY or INPUT IS PRESENT
     if (!validator.isValidRequestBody(requestBody)) {
-      res.status(400).send({ status: false, msg: "enter a valid body" });
+      res.status(400).send({ status: "FAILURE", msg: "enter a valid body" });
       return;
     }
 
@@ -19,7 +19,7 @@ const createPlan = async (req, res) => {
 
     // WHETHER A PLAN_ID IS PRESENT OR NOT
     if (!validator.isValid(plan_id)) {
-      res.status(400).send({ status: false, msg: "enter a plan id" });
+      res.status(400).send({ status: "FAILURE", msg: "enter a plan id" });
       return;
     }
 
@@ -36,13 +36,13 @@ const createPlan = async (req, res) => {
     if (!validator.isValid(validity)) {
       res
         .status(400)
-        .send({ status: false, msg: "enter a valid validity period" });
+        .send({ status: "FAILURE", msg: "enter a valid validity period" });
       return;
     }
 
     // WHETHER THE COST IS GIVEN
     if (!validator.isValid(cost)) {
-      res.status(400).send({ status: false, msg: "enter a valid amount" });
+      res.status(400).send({ status: "FAILURE", msg: "enter a valid amount" });
       return;
     }
 
@@ -56,7 +56,7 @@ const createPlan = async (req, res) => {
       .status(201)
       .send({ status: "SUCCESS", msg: "new plan incorporated", data: createdPlan });
   } catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({ status: "FAILURE", msg: error.message });
   }
 };
 
