@@ -81,6 +81,14 @@ const createSubscription = async (req, res) => {
       return;
     }
 
+    // whether the start_date is not from past
+    if (new Date(start_date) < new Date()) {
+      return res.status(400).send({
+        status: "FAILURE",
+        msg: "please provide a present date",
+      });
+    }
+
     // checking whether the user has already subscribed
 
     let total_subscriptions = await subscriptionModel.find({
@@ -93,6 +101,7 @@ const createSubscription = async (req, res) => {
         total_subscriptions[total_subscriptions.length - 1];
       let validTill = latestSubscription.valid_till;
 
+      // whether the start date is after the previous subscription expired
       if (
         moment(start_date).format("YYYY-MM-DD") <
         moment(validTill).format("YYYY-MM-DD")
@@ -212,7 +221,17 @@ const getSubscriptionByDate = async (req, res) => {
     // latest subscription details
     const latestSubscription = subs[subs.length - 1];
     const plan_id = latestSubscription.plan_id;
+    const start_date = latestSubscription.start_date;
     const valid_till = latestSubscription.valid_till;
+
+    // current date should be between start and valid date of subscription
+
+    if (new Date(current_date) < start_date) {
+      return res.status(400).send({
+        status: "FAILURE",
+        msg: `your current active plan is from ${start_date} and ${valid_till}`,
+      });
+    }
 
     // check whether the current date is between today's date and valid till date
     if (
