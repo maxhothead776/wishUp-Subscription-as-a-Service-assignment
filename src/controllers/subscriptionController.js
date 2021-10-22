@@ -104,18 +104,14 @@ const createSubscription = async (req, res) => {
         total_subscriptions[total_subscriptions.length - 1];
       let validTill = latestSubscription.valid_till;
 
-      // whether the start date is after the previous subscription expired
-      // if (
-      //   moment(start_date).format("YYYY-MM-DD") <
-      //   moment(validTill).format("YYYY-MM-DD")
-      // ) {
-      //   return res.status(400).send({
-      //     status: "FAILURE",
-      //     msg: `user is already subscribed upto ${validTill}`,
-      //   });
-      // }
-
-      start_date = moment(validTill, "YYYY-MM-DD").add(1, "days");
+      // if the input start_date is before the expiration of last subscription then,
+      if (
+        moment(start_date).format("YYYY-MM-DD") <
+        moment(validTill).format("YYYY-MM-DD")
+      ) {
+        // we will make the next day of expiration as start_date
+        start_date = moment(validTill, "YYYY-MM-DD").add(1, "days");
+      }
     }
 
     // calculating valid_till date
