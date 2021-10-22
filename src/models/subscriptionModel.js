@@ -6,8 +6,6 @@ const subsSchema = new mongoose.Schema({
   user_name: {
     type: String,
     required: "enter the user name",
-    refs: "User",
-    unique: true,
   },
   plan_id: {
     type: String,
@@ -21,7 +19,7 @@ const subsSchema = new mongoose.Schema({
   },
   valid_till: {
     type: Date,
-  }
+  },
 });
 
 module.exports = mongoose.model("subs", subsSchema);

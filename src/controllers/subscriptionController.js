@@ -12,43 +12,45 @@ const createSubscription = async (req, res) => {
 
     // checking for valid input
     if (!validator.isValidRequestBody(requestBody)) {
-      res.status(400).send({ status: "FAILURE", msg: "enter a valid body" });
+      res.status(400).send({
+        status: "FAILURE",
+        msg: "enter a valid body",
+      });
       return;
     }
 
     // object destructuring
-    const { plan_id, user_name, start_date } = requestBody;
+    let { plan_id, user_name, start_date } = requestBody;
 
     // username should be present as well
     if (!validator.isValid(user_name)) {
-      res.status(400).send({ status: "FAILURE", msg: "enter a user name" });
+      res.status(400).send({
+        status: "FAILURE",
+        msg: "enter a user name",
+      });
       return;
     }
 
     // whether the user has registered
 
-    const user = await userModel.findOne({ user_name });
-
-    if (!user) {
-      res
-        .status(404)
-        .send({ status: "FAILURE", msg: `user ${user_name} not registered` });
-      return;
-    }
-
-    // checking whether the user has already subscribed
-
-    let isSubscriptionAlreadyPresent = await subscriptionModel.findOne({
+    const user = await userModel.findOne({
       user_name,
     });
 
-    if (isSubscriptionAlreadyPresent) {
-      // code here
+    if (!user) {
+      res.status(404).send({
+        status: "FAILURE",
+        msg: `user ${user_name} not registered`,
+      });
+      return;
     }
 
     // valid plan Id
     if (!validator.isValid(plan_id)) {
-      res.status(400).send({ status: "FAILURE", msg: "enter a plan id" });
+      res.status(400).send({
+        status: "FAILURE",
+        msg: "enter a plan id",
+      });
       return;
     }
 
@@ -79,8 +81,33 @@ const createSubscription = async (req, res) => {
       return;
     }
 
+    // checking whether the user has already subscribed
+
+    let total_subscriptions = await subscriptionModel.find({
+      user_name: user_name,
+    });
+
+    // Assuming that all the subscriptiona are in order
+    if (total_subscriptions.length >= 1) {
+      var latestSubscription =
+        total_subscriptions[total_subscriptions.length - 1];
+      let validTill = latestSubscription.valid_till;
+
+      if (
+        moment(start_date).format("YYYY-MM-DD") <
+        moment(validTill).format("YYYY-MM-DD")
+      ) {
+        return res.status(400).send({
+          status: "FAILURE",
+          msg: `user is already subscribed upto ${validTill}`,
+        });
+      }
+    }
+
     // calculating valid_till date
-    const plan = await planModel.findOne({ plan_id });
+    const plan = await planModel.findOne({
+      plan_id,
+    });
 
     var valid_till;
 
@@ -93,16 +120,27 @@ const createSubscription = async (req, res) => {
     }
 
     // creating new subscription
-    const newSub = { plan_id, user_name, start_date, valid_till };
+    const newSub = {
+      plan_id,
+      user_name,
+      start_date,
+      valid_till,
+    };
 
     await subscriptionModel.create(newSub);
 
     // output
     const amount = plan.cost;
 
-    res.status(201).send({ status: "SUCCESS", amount: -amount });
+    res.status(201).send({
+      status: "SUCCESS",
+      amount: -amount,
+    });
   } catch (error) {
-    res.status(500).send({ status: false, msg: error.message });
+    res.status(500).send({
+      status: "FAILURE",
+      msg: error.message,
+    });
   }
 };
 
@@ -112,14 +150,18 @@ const getSubscriptionByDate = async (req, res) => {
     const current_date = req.params.date;
 
     if (!validator.isValid(user_name)) {
-      res.status(400).send({ status: "FAILURE", msg: "enter a valid name" });
+      res.status(400).send({
+        status: "FAILURE",
+        msg: "enter a valid name",
+      });
       return;
     }
 
     if (!validator.isValid(current_date)) {
-      res
-        .status(400)
-        .send({ status: "FAILURE", message: "current date is required" });
+      res.status(400).send({
+        status: "FAILURE",
+        message: "current date is required",
+      });
       return;
     }
 
@@ -132,17 +174,22 @@ const getSubscriptionByDate = async (req, res) => {
     }
 
     // checking whether the user is present or not
-    const user = await userModel.findOne({ user_name });
+    const user = await userModel.findOne({
+      user_name,
+    });
 
     if (!user) {
-      res
-        .status(404)
-        .send({ status: "FAILURE", msg: `user ${user_name} not found` });
+      res.status(404).send({
+        status: "FAILURE",
+        msg: `user ${user_name} not found`,
+      });
       return;
     }
 
     // checking whether he has subscribed or not
-    const subs = await subscriptionModel.find({ user_name });
+    const subs = await subscriptionModel.find({
+      user_name,
+    });
 
     if (!subs) {
       res.status(404).send({
@@ -158,7 +205,9 @@ const getSubscriptionByDate = async (req, res) => {
     const valid_till = latestSubscription.valid_till;
 
     // check whether the current date is between today's date and valid till date
-    if (moment(current_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")) {
+    if (
+      moment(current_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
+    ) {
       return res.status(400).send({
         status: "FAILURE",
         msg: "please enter today's date",
@@ -180,9 +229,15 @@ const getSubscriptionByDate = async (req, res) => {
       days_left,
     };
 
-    res.status(200).send({ status: "SUCCESS", data: data });
+    res.status(200).send({
+      status: "SUCCESS",
+      data: data,
+    });
   } catch (error) {
-    res.status(500).send({ status: "FAILURE", msg: error.message });
+    res.status(500).send({
+      status: "FAILURE",
+      msg: error.message,
+    });
   }
 };
 
@@ -191,22 +246,34 @@ const getSubscription = async (req, res) => {
     const user_name = req.params.user_name;
 
     if (!validator.isValid(user_name)) {
-      res.status(400).send({ status: "FAILURE", msg: "enter a valid name" });
+      res.status(400).send({
+        status: "FAILURE",
+        msg: "enter a valid name",
+      });
       return;
     }
 
-    const user = await userModel.findOne({ user_name });
+    const user = await userModel.findOne({
+      user_name,
+    });
 
     if (!user) {
-      res
-        .status(404)
-        .send({ status: "FAILURE", msg: `user ${user_name} not found` });
+      res.status(404).send({
+        status: "FAILURE",
+        msg: `user ${user_name} not found`,
+      });
       return;
     }
 
     const subs = await subscriptionModel.find(
-      { user_name: user_name },
-      { user_name: 0, _id: 0, __v: 0 }
+      {
+        user_name: user_name,
+      },
+      {
+        user_name: 0,
+        _id: 0,
+        __v: 0,
+      }
     );
 
     if (!subs) {
@@ -217,9 +284,15 @@ const getSubscription = async (req, res) => {
       return;
     }
 
-    res.status(200).send({ status: "SUCCESS", data: subs });
+    res.status(200).send({
+      status: "SUCCESS",
+      data: subs,
+    });
   } catch (error) {
-    res.status(500).send({ status: "FAILURE", msg: error.message });
+    res.status(500).send({
+      status: "FAILURE",
+      msg: error.message,
+    });
   }
 };
 
