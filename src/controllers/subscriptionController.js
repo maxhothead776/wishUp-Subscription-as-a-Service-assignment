@@ -69,7 +69,7 @@ const createSubscription = async (req, res) => {
     if (!validator.isValid(start_date)) {
       res.status(400).send({
         status: "FAILURE",
-        message: "enter date in YYYY-MM-DD format",
+        message: "enter a date and in YYYY-MM-DD format",
       });
       return;
     }
@@ -84,10 +84,12 @@ const createSubscription = async (req, res) => {
     }
 
     // whether the start_date is not from past
-    if (new Date(start_date) < new Date()) {
+    if (
+      moment(start_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
+    ) {
       return res.status(400).send({
         status: "FAILURE",
-        msg: "please provide a present date",
+        msg: "please enter a present date",
       });
     }
 

@@ -21,7 +21,7 @@ const createUser = async (req, res) => {
     if (UserAlreadyPresent) {
       return res.status(400).send({
         status: "FAILURE",
-        msg: ` username ${user_name} already taken, choose a new one`,
+        msg: ` username ${user_name.trim()} already taken, choose a new one`,
       });
     }
 
