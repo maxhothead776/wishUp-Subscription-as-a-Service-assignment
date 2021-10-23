@@ -84,9 +84,7 @@ const createSubscription = async (req, res) => {
     }
 
     // whether the start_date is not from past
-    if (
-      moment(start_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
-    ) {
+    if (!validator.isToday(start_date)) {
       return res.status(400).send({
         status: "FAILURE",
         msg: "please enter a present date",
@@ -106,13 +104,16 @@ const createSubscription = async (req, res) => {
         total_subscriptions[total_subscriptions.length - 1];
       let validTill = latestSubscription.valid_till;
 
-      // if the input start_date is before the expiration of last subscription then,
-      if (
-        moment(start_date).format("YYYY-MM-DD") <
-        moment(validTill).format("YYYY-MM-DD")
-      ) {
-        // we will make the next day of expiration as start_date
-        start_date = moment(validTill, "YYYY-MM-DD").add(1, "days");
+      // if only the person is not on free plan otherwise we would want him to subscribe asap..
+      if (!(latestSubscription.plan_id == "FREE")) {
+        // if the input start_date is before the expiration of last subscription then,
+        if (
+          moment(start_date).format("YYYY-MM-DD") <
+          moment(validTill).format("YYYY-MM-DD")
+        ) {
+          // we will make the next day from expiration as start_date
+          start_date = moment(validTill, "YYYY-MM-DD").add(1, "days");
+        }
       }
     }
 
@@ -123,6 +124,7 @@ const createSubscription = async (req, res) => {
 
     var valid_till;
 
+    // for FREE plan and INFINITE validity i've taken an infinite number
     if (plan.validity == 1e300) {
       // for infinite date
       var MAX_TIMESTAMP = 8640000000000000;
@@ -171,6 +173,7 @@ const getSubscriptionByDate = async (req, res) => {
     let user_name = req.params.user_name;
     let input_date = req.params.date;
 
+    // validating all the inputs
     if (!validator.isValid(user_name)) {
       res.status(400).send({
         status: "FAILURE",
@@ -196,9 +199,7 @@ const getSubscriptionByDate = async (req, res) => {
     }
 
     // check whether the input date is not from the past
-    if (
-      moment(input_date).format("YYYY-MM-DD") < moment().format("YYYY-MM-DD")
-    ) {
+    if (!validator.isToday(input_date)) {
       return res.status(400).send({
         status: "FAILURE",
         msg: "please enter today's date",
@@ -226,17 +227,19 @@ const getSubscriptionByDate = async (req, res) => {
       user_name: user_name,
       start_date: { $lte: new Date(input_date) },
       valid_till: { $gte: new Date(input_date) },
+      plan_id: { $ne: "FREE" },
     });
 
     // if subscription is not found
     if (!subscription) {
       res.status(404).send({
         status: "FAILURE",
-        msg: `user ${user_name} has not subscribed yet`,
+        msg: `user ${user_name} has not subscribed to any of the plan yet`,
       });
       return;
     }
 
+    // using moment to get the days left
     const plan_id = subscription.plan_id;
     const valid_till = moment(subscription.valid_till);
     input_date = moment(input_date);
@@ -248,6 +251,7 @@ const getSubscriptionByDate = async (req, res) => {
       days_left,
     };
 
+    // output
     res.status(200).send({
       status: "SUCCESS",
       data: data,
@@ -264,6 +268,7 @@ const getSubscription = async (req, res) => {
   try {
     let user_name = req.params.user_name;
 
+    // validating input
     if (!validator.isValid(user_name)) {
       res.status(400).send({
         status: "FAILURE",
@@ -272,6 +277,7 @@ const getSubscription = async (req, res) => {
       return;
     }
 
+    // finding the user in db
     const user = await userModel.findOne({
       user_name,
     });
@@ -287,6 +293,7 @@ const getSubscription = async (req, res) => {
     // casting username to objectId
     user_name = user._id;
 
+    // finding all the subs of user
     const subs = await subscriptionModel.find(
       {
         user_name: user_name,
