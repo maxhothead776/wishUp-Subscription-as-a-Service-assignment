@@ -57,7 +57,7 @@ const getUser = async (req, res) => {
     if (!user) {
       res.status(404).send({
         status: "FAILURE",
-        msg: `user ${user_name} has not registered yet`,
+        msg: `user ${user_name.trim()} has not registered yet`,
       });
       return;
     }
